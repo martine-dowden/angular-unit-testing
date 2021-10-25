@@ -1,0 +1,9 @@
+mat-form-field, mat-radio-button, .mat-radio-group {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+mat-radio-group > *, #prefer {
+  display: block;
+  margin-bottom: .5rem;
+}

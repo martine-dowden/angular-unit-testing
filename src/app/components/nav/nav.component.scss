@@ -1,0 +1,8 @@
+@use '../../../styles.scss' as base;
+@use "sass:map";
+
+mat-nav-list {
+  min-width: 200px
+}
+a { border-left: solid 6px rgba(0, 0, 0, 0); }
+a.active { border-color: map.get(base.$accent, 700); }

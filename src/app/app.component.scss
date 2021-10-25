@@ -1,0 +1,6 @@
+.app {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: max-content auto;
+  overflow: hidden;
+}
