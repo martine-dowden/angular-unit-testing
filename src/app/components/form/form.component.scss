@@ -1,9 +1,41 @@
-mat-form-field, mat-radio-button, .mat-radio-group {
+$error: #8d0c0c;
+
+* { box-sizing: border-box; }
+
+form {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+  padding: 1rem;
+}
+
+label:before {
+  content: "* ";
+  color: $error;
+}
+
+input {
+  border: solid 1px #ddd;
   display: block;
+  padding: 1ex 2ch;
+  width: 100%;
+}
+
+.email, .password {
   margin-bottom: 1rem;
 }
 
-mat-radio-group > *, #prefer {
-  display: block;
-  margin-bottom: .5rem;
+.error, span.required {
+  color: $error;
+}
+
+.hint {
+  font-style: italic;
+  color: #777;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
 }

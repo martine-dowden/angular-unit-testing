@@ -1,42 +1,16 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { HarnessLoader } from '@angular/cdk/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-
-
-import { ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MaterialModule } from '../../material/material.module';
-import { FormService } from '../../services/form/form.service';
-
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { FormComponent } from './form.component';
 
 describe('FormComponent', () => {
   let component: FormComponent;
   let fixture: ComponentFixture<FormComponent>;
-  let loader: HarnessLoader;
-
-  const mockFormService = new FormService();
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      schemas: [ CUSTOM_ELEMENTS_SCHEMA ],
-      imports: [
-        ReactiveFormsModule,
-        MaterialModule,
-        BrowserAnimationsModule,
-      ],
+      imports: [ ReactiveFormsModule ],
       declarations: [ FormComponent ],
-      providers: [
-        MatSnackBar,
-        { provide: FormService, useValue: mockFormService },
-      ]
     })
     .compileComponents();
   });
@@ -44,141 +18,200 @@ describe('FormComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(FormComponent);
     component = fixture.componentInstance;
-    loader = TestbedHarnessEnvironment.loader(fixture);
+    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  //  Checking multiple values against one function
-  const emailValidationTests = [
-    { value: 'user@email.com', valid: true },
-    { value: 'user@email', valid: false },
-    { value: 0, valid: false },
-    { value: -1, valid: false },
-    { value: 1, valid: false },
-    { value: null, valid: true },
-    { value: undefined, valid: true },
-    { value: 'first.last@company.email.com', valid: true },
-    { value: 'user@email.dev', valid: true },
-    { value: '@email.com', valid: false },
-    { value: 'user.com', valid: false },
-    { value: 'user123@email.com', valid: true },
-  ];
-  emailValidationTests.forEach(test => {
-    it(`should validate the email address: "${test.value}"`, () => {
-      const emailControl = component.form.get('email');
-      emailControl?.patchValue(test.value);
+  const emailTests = [
+    { value: 'john@email.com', valid: true },
+    { value: 'john@email.', valid: false },
+    { value: 'john@email', valid: false },
+    { value: 'john@', valid: false },
+    { value: 'john', valid: false },
+    { value: 'teacher@district.k12.edu', valid: true },
+  ]
+  emailTests.forEach(test => {
+    it(`should validate email pattern: ${test.value}`, () => {
+      const control = component.form.get('email');
+      
+      //  Identify the input element by looking for an input with id of email
+      const input = fixture.nativeElement.querySelector('#email');
+      //  Identify the error div by looking for a div with id of emailError
+      const errors = fixture.nativeElement.querySelector('#emailError');
+    
+      
+      //  dispatch an input event so the input get marked as dirty
+      input.dispatchEvent(new Event('input'))
+
+      control?.patchValue(test.value);
+
+      //  update fixture
       fixture.detectChanges();
-      expect(emailControl?.valid).toBe(test.valid);
+      //  check that it is in fact dirty
+      expect(control?.dirty).toBeTrue();
+
+      //  test that
+      //  email pattern error message is not shown when valid
+      //  email pattern error message is shown when not valid
+      const emailPatternMessage = 'Please provide a valid email address';
+      expect(errors.innerText.includes(emailPatternMessage)).toBe(!test.valid)
+      
+      expect(control?.valid).toBe(test.valid);
+      expect(!!control?.getError('pattern')).toBe(!test.valid)
     });
-  });
-
-  //  Without using Material Harness
-  it(`should make the name required`, () => {
-    const email = fixture.nativeElement.querySelector('input');
-    const required = email.getAttribute('required')
-    //  Because required does not have a value
-    expect(required).toEqual('');
-
-    //  Check the Angular validators
-    const control = component.form.get('name')
-    expect(control?.hasValidator(Validators.required)).toBeTruthy()
-  });
-
-  //  Using Material Harness
-  it(`should display an error to the user if name is invalid`, async () => {
-    const input = await loader.getHarness(MatInputHarness.with({ placeholder: 'Email' }))
-    await input.focus();
-    const invalidEmailValue = 'not a valid email address';
-    await input.setValue(invalidEmailValue)
-    await input.blur();
-    expect(component.form.get('email')?.invalid).toBeTrue();
-    const formField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Email' }))
-    const errors = await formField.getTextErrors()
-    const emailError = errors.find(e => 'Please provide a valid email address')
-    expect(emailError).toBeTruthy();
   })
 
-  it(`should display a hint below the comments with the character count`, async () => {
-    const commentsFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Comments' }))
-    const commentsTextArea = await loader.getHarness(MatInputHarness.with({ placeholder: 'Comments' }))
-    await commentsTextArea.setValue('This string is 33 characters long')
-    const hintValues = await commentsFormField.getTextHints()
-    expect(hintValues[0]).toEqual('33 / 250');
+  const emailLengthTests = [
+    { value: 'john@email.com', valid: true },
+    //  A value of exactly 50 characters (our max length)
+    { value: 'userHasAVeryVeryVeryLongUserName@longLongEmail.com', valid: true },
+    //  Greater than our max length (54 characters)
+    { value: 'userHasAVeryVeryVeryLongUserName@longLongLongEmail.com', valid: false },
+  ]
+  emailLengthTests.forEach(test => {
+    //  change the name of the test
+    it(`should validate email length: ${test.value}`, () => {
+      const control = component.form.get('email');
+      const input = fixture.nativeElement.querySelector('#email');
+      const errors = fixture.nativeElement.querySelector('#emailError');
+    
+      input.dispatchEvent(new Event('input'))
+      control?.patchValue(test.value);
+      fixture.detectChanges();
+      expect(control?.dirty).toBeTrue();
+
+      //  Change the error message
+      const emailLengthMessage = 'Email should be less than or equal to 50 characters';
+      
+      expect(errors.innerText.includes(emailLengthMessage)).toBe(!test.valid)   
+      expect(control?.valid).toBe(test.valid);
+
+      //  change the error type we are looking for
+      expect(!!control?.getError('maxlength')).toBe(!test.valid)
+    });
   })
 
-  it(`should disable the submit button when form is invalid and enabled once valid`, async () => {
-    //  Disabled
-    component.form.reset();
-    component.form.setValue({ name: 'My Name', email: 'invalid email address', preference: 1, comments: '' });
-    fixture.detectChanges();
-    expect(component.form.valid).toBeFalse();
-    const testHarnessSubmitButton = await loader.getHarness(MatButtonHarness.with({ text: 'Submit' }))
-    let disabled = await testHarnessSubmitButton.isDisabled()
-    expect(disabled).toBeTrue()
+  const emailRequiredTests = [
+    { value: 'john@email.com', valid: true },
+    { value: null, valid: false },
+  ]
+  emailRequiredTests.forEach(test => {
+    //  change the name of the test
+    it(`should validate email length: ${test.value}`, () => {
+      const control = component.form.get('email');
+      const input = fixture.nativeElement.querySelector('#email');
+      const errors = fixture.nativeElement.querySelector('#emailError');
+    
+      input.dispatchEvent(new Event('input'))
+      control?.patchValue(test.value);
+      fixture.detectChanges();
+      expect(control?.dirty).toBeTrue();
 
-    //  Enabled, Without Material Harness
-    component.form.get('email')?.patchValue('user@email.com');
-    fixture.detectChanges();
+      //  Change the error message
+      const emailRequiredMessage = 'This is a required field';
+      
+      expect(errors.innerText.includes(emailRequiredMessage)).toBe(!test.valid)   
+      expect(control?.valid).toBe(test.valid);
+
+      //  change the error type we are looking for
+      expect(!!control?.getError('required')).toBe(!test.valid)
+    });
+  })
+
+  it(`should have an associated label`, () => {
+    //  Finds the first input in the component
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    //  get the input's id
+    const id = input.getAttribute('id')
+    //  find a label with a for attribute that matches the ID
+    const label = fixture.nativeElement.querySelector(`label[for="${id}"`);
+    //  Check that label Exists
+    expect(label).toBeTruthy();
+    //  Check that label includes the word "email"
+    //  To lowercase to prevent failure due to capitalization
+    expect(label.innerText.toLowerCase()).toContain('email')
+  });
+
+  it(`should handle error accessibility`, () => {
+
+    //  Finds the first input in the component
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    //  get the error div's Id
+    const errorMessageId = input.getAttribute('aria-errormessage')
+    //  find a div with a id that matches the attribute
+    const errors = fixture.nativeElement.querySelector(`#${errorMessageId}`);
+    //  check that element exists
+    expect(errors).toBeTruthy()
+    //  Check that is has a role="alert"
+    const role = errors.getAttribute('role')
+    expect(role).toEqual('alert')
+  })
+
+  it(`has an autocomplete attribute`, () => {
+    //  Find our email field
+    const email = fixture.nativeElement.querySelector('#email') as HTMLInputElement;
+    //  get the autocomplete attribute value
+    const autocomplete = email.getAttribute('autocomplete');
+    //  test that autocomplete has a value
+    expect(autocomplete).toBeTruthy();
+    //  test autocomplete value is equal to email
+    expect(autocomplete).toEqual('email');
+  })
+
+  it(`should toggle disabling the submit button based on form state`, () => {
+    //  Find our button
+    const button = fixture.nativeElement.querySelector('button[type="submit"]');
+    //  Patch the form with valid values
+    component.form.patchValue({ email: 'user@gmail.com' });
+    //  update fixture
+    fixture.detectChanges()
+    //  Check form validity, should be valid
     expect(component.form.valid).toBeTrue();
-    const vanillaSubmitButton = fixture.nativeElement.querySelector('button[type="submit"]');
-    disabled = vanillaSubmitButton.disabled
-    expect(disabled).toBeFalse();
+    //  Check button state, should be disabled
+    expect(button.disabled).toBeFalse();
+
+    //  now patch invalid value
+    component.form.patchValue({ email: 'invalid value' });
+    //  update fixture
+    fixture.detectChanges();
+    //  Check form validity, should be invalid
+    expect(component.form.valid).toBeFalse();
+    //  Check button state, should be disabled
+    expect(button.disabled).toBeTrue();
   });
 
-  it(`should disable the submit button when form is being submitted`, async () => {
-    const formVal = { name: 'My Name', email: 'user@email.com', preference: 1, comments: '' };
-    component.form.patchValue(formVal);
+  it(`should reset form`, () => {
+    //  Find our button
+    const button = fixture.nativeElement.querySelector('button[type="button"]');
+    //  Patch the form with valid values
+    component.form.patchValue({ email: 'user@gmail.com' });
+    //  update fixture
+    fixture.detectChanges()
+    //  Check form validity, should be valid
+    expect(component.form.valid).toBeTrue();
+    //  Check button state, should be enabled
+    expect(button.disabled).toBeFalse();
 
-    //  Disabled
-    component.submitting = true;
+    //  now patch invalid value
+    component.form.patchValue({ email: 'invalid value' });
+    //  update fixture
     fixture.detectChanges();
-    let testHarnessSubmitButton = await loader.getHarness(MatButtonHarness.with({ text: 'Submit' }))
-    let disabled = await testHarnessSubmitButton.isDisabled()
-    expect(disabled).toBeTrue()
+    //  Check form validity, should be invalid
+    expect(component.form.valid).toBeFalse();
+    //  Check button state, should be enabled
+    expect(button.disabled).toBeFalse();
 
-    //  Enabled
-    component.submitting = false;
+    // click the button
+    button.click();
+    //  update fixture
     fixture.detectChanges();
-    testHarnessSubmitButton = await loader.getHarness(MatButtonHarness.with({ text: 'Submit' }))
-    disabled = await testHarnessSubmitButton.isDisabled()
-    expect(disabled).toBeFalse();
+    //  Check that form is back to a pristine state
+    expect(component.form.pristine).toBeTrue()
+    //  get form value (should no longer have an email value)
+    expect(component.form.get('email')?.value).toBe(null)
   });
-
-  it(`should trigger the form service on submit button click`, async () => {
-    const serviceSpy = spyOn(mockFormService, 'submit');
-    const snackBarSpy = spyOn(component.snackbar, 'open')
-    const formVal = { name: 'My Name', email: 'user@email.com', preference: 1, comments: '' };
-    component.form.setValue(formVal);
-    const submitButton = await loader.getHarness(MatButtonHarness.with({ text: 'Submit' }));
-    await submitButton.click();
-    await fixture.whenStable();
-    expect(serviceSpy).toHaveBeenCalled();
-    expect(snackBarSpy).toHaveBeenCalled();
-   expect(snackBarSpy.calls.first().args).toEqual([ 'Success: your responses have been submitted', 'ok' ])
-  })
-
-  it(`mat snackbar with error message should trigger if service fails`, async () => {
-    const serviceSpy = spyOn(mockFormService, 'submit').and.rejectWith(new Promise(reject => reject(new Error('Epic Fail'))));
-    const snackBarSpy = spyOn(component.snackbar, 'open');
-    const formVal = { name: 'My Name', email: 'user@email.com', preference: 1, comments: '' };
-    component.form.setValue(formVal);
-    const submitButton = await loader.getHarness(MatButtonHarness.with({ text: 'Submit' }));
-    await submitButton.click();
-    await fixture.whenStable();
-    expect(serviceSpy).toHaveBeenCalled();
-    expect(snackBarSpy).toHaveBeenCalled();
-    expect(snackBarSpy.calls.first().args).toEqual([ 'Sorry: an error has occurred, please try again later', 'ok' ]);
-  })
-
-  it(`should reset form when reset button is clicked`, async () => {
-    const resetButton = fixture.nativeElement.querySelector('button[type="button"]');
-    const formResetSpy = spyOn(component.form, 'reset')
-    resetButton.click();
-    fixture.detectChanges();
-    expect(formResetSpy).toHaveBeenCalled();
-  })
 
 });
