@@ -1,6 +1,11 @@
 <mat-nav-list aria-label="main navigation">
-  <a mat-list-item [routerLink]="['/form']" routerLinkActive="active">
+  <a mat-list-item [routerLink]="['/form']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
     <mat-icon mat-list-icon>edit</mat-icon>
     <div mat-line>Form</div>
+  </a>
+  <h2 matSubheader>Field Validation</h2>
+  <a mat-list-item [routerLink]="['/banned-word-list']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+    <mat-icon mat-list-icon>edit_off</mat-icon>
+    <div mat-line>Banned Words List</div>
   </a>
 </mat-nav-list>

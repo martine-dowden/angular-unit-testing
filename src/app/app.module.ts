@@ -9,13 +9,15 @@ import { HeaderComponent } from './components/header/header.component';
 import { FormComponent } from './components/form/form.component';
 import { NavComponent } from './components/nav/nav.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { BannedWordsComponent } from './components/banned-words/banned-words.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HeaderComponent,
     FormComponent,
-    NavComponent
+    NavComponent,
+    BannedWordsComponent,
   ],
   imports: [
     BrowserModule,

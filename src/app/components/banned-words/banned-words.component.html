@@ -1,0 +1,27 @@
+<main>
+  <mat-card>
+    <h1 mat-card-title>Banned Words List</h1>
+    <form [formGroup]="form" novalidate>
+
+      <label for="comments">Comments</label>
+
+      <textarea id="comments" #comments formControlName="comments" rows="5" aria-errormessage="errors"
+        aria-describedby="hints"></textarea>
+
+      <div class="hints" id="hints">
+        <div>The forbidden words are: {{ bannedWords }}</div>
+        <div align="end">{{ comments.value?.length || 0 }} / 250</div>
+      </div>
+
+      <div class="errors" id="errors">
+        <p *ngIf="showError('maxlength')">Comment must be 250 characters or less</p>
+        <p *ngIf="showError('bannedWords')">
+          Your comment contains the following forbidden words:
+          <strong>{{ form.get('comments')?.getError('bannedWords')?.bannedWords }}</strong>
+        </p>
+      </div>
+
+      <pre>form?.get('comments')?.errors = {{ form?.get('comments')?.errors | json }}</pre>
+    </form>
+  </mat-card>
+</main>
