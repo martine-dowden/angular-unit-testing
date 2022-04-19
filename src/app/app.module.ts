@@ -10,6 +10,7 @@ import { FormComponent } from './components/form/form.component';
 import { NavComponent } from './components/nav/nav.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BannedWordsComponent } from './components/banned-words/banned-words.component';
+import { HtmlFormComponent } from './components/html-form/html-form.component';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { BannedWordsComponent } from './components/banned-words/banned-words.com
     FormComponent,
     NavComponent,
     BannedWordsComponent,
+    HtmlFormComponent,
   ],
   imports: [
     BrowserModule,
