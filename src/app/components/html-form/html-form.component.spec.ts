@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from '../../material/material.module';
@@ -84,7 +84,6 @@ describe('HtmlFormComponent', () => {
     fixture.detectChanges();
 
     const label = <HTMLLabelElement>emailInput.parentNode;
-    console.log(label)
     const errors: NodeListOf<HTMLLabelElement> = label.querySelectorAll('.errors');
     expect(errors.length).toEqual(1);
     expect(errors[0].innerText).toEqual(component.errors.pattern);
@@ -106,7 +105,6 @@ describe('HtmlFormComponent', () => {
       fixture.detectChanges();
   
       const label = <HTMLLabelElement>emailInput.parentNode;
-      console.log(label)
       const errors: NodeListOf<HTMLLabelElement> = label.querySelectorAll('.errors');
       expect(errors.length).toEqual(1);
       expect(errors[0].innerText).toEqual(component.errors[test.error]);
